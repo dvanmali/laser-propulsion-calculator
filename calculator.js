@@ -46,186 +46,146 @@ const h_planck = 6.626070040e-34 * J / s;
  * @property {Number} step_val - Interval to jump when using arrows on the HTML input
  */
 var inputs = {
-  m0_payload_mass:
-  {
+  m0_payload_mass: {
     label: 'Payload',
-    unit:
-    {
+    unit: {
       kg: kg,
     },
     val: 0.001,
   },
-  use_circular_sail:
-  {
+  use_circular_sail: {
     label: 'Use Circular Sail',
     checked: false,
   },
-  auto_sail:
-  {
+  auto_sail: {
     label: 'Use Optimal Sail Size',
     checked: true,
   },
-  D_sail_size:
-  {
+  D_sail_size: {
     label: 'Sail Side Length',
-    unit:
-    {
+    unit: {
       m: m,
     },
   },
-  h_sail_thickness:
-  {
+  h_sail_thickness: {
     label: 'Sail Thickness',
-    unit:
-    {
+    unit: {
       '&mu;m': um,
     },
     val: 1,
   },
-  rho_sail_density:
-  {
+  rho_sail_density: {
     label: 'Sail Density',
-    unit:
-    {
+    unit: {
       'g/cm<sup>3</sup>': (g / Math.pow(cm, 3)), // Grams per centimeter cubed
     },
     val: 1,
   },
-  epsilon_sub_r_reflection_coef:
-  {
+  epsilon_sub_r_reflection_coef: {
     label: 'Sail Reflection Efficiency (0 - 1)',
     val: 1,
-    attributes:
-    {
+    attributes: {
       min: 0,
       max: 1,
     },
   },
-  use_circular_array:
-  {
+  use_circular_array: {
     label: 'Use Circular Laser Array',
     checked: false,
   },
-  d_array_size:
-  {
+  d_array_size: {
     label: 'Laser Array Side Length',
-    unit:
-    {
+    unit: {
       m: m,
     },
     val: 10000,
   },
-  P_optical:
-  {
+  P_optical: {
     label: 'Total Optical Power',
-    unit:
-    {
+    unit: {
       GW: GW,
     },
     val: 100,
   },
-  epsilon_sub_beam_beam_eff:
-  {
+  epsilon_sub_beam_beam_eff: {
     label: 'Beam Efficiency (0 - 1)',
     val: 1,
-    attributes:
-    {
+    attributes: {
       min: 0,
       max: 1,
     },
   },
-  lambda_wavelength:
-  {
+  lambda_wavelength: {
     label: 'Wavelength',
-    unit:
-    {
+    unit: {
       nm: nm,
     },
     val: 1060,
-    attributes:
-    {
+    attributes: {
       min: 1,
     },
   },
-  epsilon_sub_elec_photon_to_electrical_eff:
-  {
+  epsilon_sub_elec_photon_to_electrical_eff: {
     label: 'Electrical Efficiency (0 - 1)',
     val: 1,
-    attributes:
-    {
+    attributes: {
       min: 0,
       max: 1,
     },
   },
-  energy_cost:
-  {
+  energy_cost: {
     label: 'Electrical Energy Cost',
-    unit:
-    {
+    unit: {
       '$/kW-hr': (1 / (kW * hr)),
     },
     val: 0.1,
   },
-  energy_storage_cost:
-  {
+  energy_storage_cost: {
     label: 'Energy Storage Cost',
-    unit:
-    {
+    unit: {
       '$/W-hr': (1 / (W * hr)),
     },
     val: 0.1,
   },
-  Laser_comm_spacecraft_power_peak:
-  {
+  Laser_comm_spacecraft_power_peak: {
     label: 'Peak Laser Comm Power',
-    unit:
-    {
+    unit: {
       W: W,
     },
     val: 1,
   },
-  Photons_per_bit_for_communication:
-  {
+  Photons_per_bit_for_communication: {
     label: 'Photons Per Bit for Communication',
-    unit:
-    {
+    unit: {
       'ph/bit': 1,
     },
     val: 1,
   },
-  lambda_laser_comm_wavelength:
-  {
+  lambda_laser_comm_wavelength: {
     label: 'Laser Comm Wavelength',
-    unit:
-    {
+    unit: {
       nm: nm,
     },
     val: 600,
   },
-  Laser_comm_beam_efficiency:
-  {
+  Laser_comm_beam_efficiency: {
     label: 'Laser Comm Beam Efficiency (0 - 1)',
     val: 1,
   },
-  use_circular_laser_comm_optics:
-  {
+  use_circular_laser_comm_optics: {
     label: 'Use Circular Comm Optics',
     checked: true,
   },
-  Laser_comm_spacecraft_optics_size:
-  {
+  Laser_comm_spacecraft_optics_size: {
     label: 'Spacecraft Laser Comm Optical Size',
-    unit:
-    {
+    unit: {
       m: m,
     },
     val: 1,
   },
-  L_target:
-  {
+  L_target: {
     label: 'Target Distance',
-    unit:
-    {
+    unit: {
       ly: ly,
     },
     val: 4.37,
@@ -239,24 +199,18 @@ var inputs = {
  * @property {Function} update() - Updates val
  */
 var hiddens = {
-  xi_sail_constant:
-  {
-    update: function ()
-    {
+  xi_sail_constant: {
+    update: function() {
       this.val = use_circular_sail.checked ? Math.PI / 4 : 1;
     },
   },
-  alpha_array_constant:
-  {
-    update: function ()
-    {
+  alpha_array_constant: {
+    update: function() {
       this.val = use_circular_array.checked ? 1.22 : 1;
     },
   },
-  alpha_laser_comm_optics_constant:
-  {
-    update: function ()
-    {
+  alpha_laser_comm_optics_constant: {
+    update: function() {
       this.val = use_circular_laser_comm_optics.checked ? 1.22 : 1;
     },
   },
@@ -272,310 +226,244 @@ var hiddens = {
  * @property {Function} update() - Updates val
  */
 var outputs = {
-  m_sail:
-  {
+  m_sail: {
     label: 'Sail Mass',
-    unit:
-    {
+    unit: {
       g: g,
     },
-    update()
-    {
+    update() {
       this.val = (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2) *
         inputs.h_sail_thickness.val * inputs.rho_sail_density.val);
     },
   },
-  m_total_mass:
-  {
+  m_total_mass: {
     label: 'Total Mass',
-    unit:
-    {
+    unit: {
       g: g,
     },
-    update()
-    {
+    update() {
       this.val = inputs.m0_payload_mass.val + outputs.m_sail.val;
     },
   },
-  sail_areal:
-  {
+  sail_areal: {
     label: 'Areal Density',
-    unit:
-    {
+    unit: {
       'g/m<sup>2</sup>': (g / Math.pow(m, 2)),
     },
-    update()
-    {
+    update() {
       this.val = inputs.h_sail_thickness.val * inputs.rho_sail_density.val;
     },
   },
-  P0_laser_power_in_main_beam:
-  {
+  P0_laser_power_in_main_beam: {
     label: 'Laser Power in Main Beam',
-    unit:
-    {
+    unit: {
       GW: GW,
     },
-    update()
-    {
+    update() {
       this.val = inputs.epsilon_sub_beam_beam_eff.val * inputs.P_optical.val;
     },
   },
-  flux_on_sail:
-  {
+  flux_on_sail: {
     label: 'Flux on Sail',
-    unit:
-    {
+    unit: {
       'GW/m<sup>2</sup>': (GW / Math.pow(m, 2)),
     },
-    update()
-    {
+    update() {
       this.val = (outputs.P0_laser_power_in_main_beam.val /
         (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2)));
     },
   },
-  a_acceleration:
-  {
+  a_acceleration: {
     label: 'Peak Acceleration',
-    unit:
-    {
+    unit: {
       'm/s<sup>2</sup>': 1,
       'g<sub>n</sub>': g_n,
     },
-    update()
-    {
+    update() {
       this.val = (1 + inputs.epsilon_sub_r_reflection_coef.val) *
         outputs.P0_laser_power_in_main_beam.val / (outputs.m_total_mass.val * c_speed_light);
     },
   },
-  L0_distance_to_spot_size_equals_sail_size:
-  {
+  L0_distance_to_spot_size_equals_sail_size: {
     label: 'L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       au: au,
       km: km,
     },
-    update()
-    {
+    update() {
       this.val = (inputs.d_array_size.val * inputs.D_sail_size.val /
         (2 * inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val));
     },
   },
-  t0_time_to_L0:
-  {
+  t0_time_to_L0: {
     label: 'Time to L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       d: d,
       s: s,
     },
-    update()
-    {
+    update() {
       this.val = (Math.sqrt(c_speed_light * inputs.d_array_size.val *
         inputs.D_sail_size.val * outputs.m_total_mass.val /
-        ((1 + inputs.epsilon_sub_r_reflection_coef.val) * outputs.P0_laser_power_in_main_beam.val *
-        inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val)));
+        ((1 + inputs.epsilon_sub_r_reflection_coef.val) *
+          outputs.P0_laser_power_in_main_beam.val *
+          inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val)));
     },
   },
-  v_0_speed_to_L0:
-  {
+  v_0_speed_to_L0: {
     label: 'Speed at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       'km/s': (km / s),
       '% c': (c_speed_light / 100),
     },
-    update()
-    {
+    update() {
       this.val = (Math.sqrt((1 + inputs.epsilon_sub_r_reflection_coef.val) *
-        outputs.P0_laser_power_in_main_beam.val * inputs.d_array_size.val * inputs.D_sail_size.val /
+        outputs.P0_laser_power_in_main_beam.val * inputs.d_array_size.val *
+        inputs.D_sail_size.val /
         (c_speed_light * inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val *
-        outputs.m_total_mass.val)));
+          outputs.m_total_mass.val)));
     },
   },
-  l0_ke:
-  {
+  l0_ke: {
     label: 'Kinetic Energy at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       'GW*hr': (GW * hr),
       J: J,
     },
-    update()
-    {
+    update() {
       this.val = 0.5 * outputs.m_total_mass.val * Math.pow(outputs.v_0_speed_to_L0.val, 2);
     },
   },
-  E_gamma_photon_energy_in_main_beam_to_time_t0:
-  {
+  E_gamma_photon_energy_in_main_beam_to_time_t0: {
     label: 'Laser Energy in Main Beam at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       'GW*hr': (GW * hr),
       J: J,
     },
-    update()
-    {
+    update() {
       this.val = outputs.P0_laser_power_in_main_beam.val * outputs.t0_time_to_L0.val;
     },
   },
-  E_elec_total_electrical_energy_used_to_t0:
-  {
+  E_elec_total_electrical_energy_used_to_t0: {
     label: 'Electrical Energy at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       'GW*hr': (GW * hr),
       J: J,
     },
-    update()
-    {
+    update() {
       this.val = (inputs.P_optical.val * outputs.t0_time_to_L0.val /
         inputs.epsilon_sub_elec_photon_to_electrical_eff.val);
     },
   },
-  launch_efficiency_at_L0:
-  {
+  launch_efficiency_at_L0: {
     label: 'Launch Efficiency at L<sub>0</sub> (KE / Electrical Energy)',
-    unit:
-    {
+    unit: {
       '%': 1 / 100,
     },
-    update()
-    {
+    update() {
       this.val = outputs.l0_ke.val / outputs.E_elec_total_electrical_energy_used_to_t0.val;
     },
   },
-  energy_cost_per_launch:
-  {
+  energy_cost_per_launch: {
     label: 'Electrical Energy Cost at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       '$': 1,
     },
-    update()
-    {
+    update() {
       this.val = outputs.E_elec_total_electrical_energy_used_to_t0.val * inputs.energy_cost.val;
     },
   },
-  energy_storage_cost_per_launch:
-  {
+  energy_storage_cost_per_launch: {
     label: 'Energy Storage Cost at L<sub>0</sub>',
-    unit:
-    {
+    unit: {
       '$': 1,
     },
-    update()
-    {
+    update() {
       this.val = outputs.E_elec_total_electrical_energy_used_to_t0.val *
         inputs.energy_storage_cost.val;
     },
   },
-  v_infinity_speed_with_continued_illumination:
-  {
+  v_infinity_speed_with_continued_illumination: {
     label: 'Limiting Speed',
-    unit:
-    {
+    unit: {
       'km/s': (km / s),
       '% c': (c_speed_light / 100),
     },
-    update()
-    {
+    update() {
       this.val = Math.sqrt(2) * outputs.v_0_speed_to_L0.val;
     },
   },
-  time_to_target_at_limiting_speed:
-  {
+  time_to_target_at_limiting_speed: {
     label: 'Time to Target at Limiting Speed',
-    unit:
-    {
+    unit: {
       'yr': yr,
     },
-    update()
-    {
+    update() {
       this.val = inputs.L_target.val / outputs.v_infinity_speed_with_continued_illumination.val;
     },
   },
-  Laser_comm_flux_at_earth:
-  {
+  Laser_comm_flux_at_earth: {
     label: 'Laser Comm Flux at Earth',
-    unit:
-    {
+    unit: {
       'ph s<sup>-1</sup>m<sup>-2</sup>': (1 / (s * Math.pow(m, 2))),
     },
-    update()
-    {
+    update() {
       this.val = (inputs.Laser_comm_beam_efficiency.val *
         inputs.Laser_comm_spacecraft_power_peak.val /
         (h_planck * c_speed_light / (inputs.lambda_laser_comm_wavelength.val)) /
         Math.pow(inputs.L_target.val * 2 * inputs.lambda_laser_comm_wavelength.val /
-        (inputs.Laser_comm_spacecraft_optics_size.val *
-        hiddens.alpha_laser_comm_optics_constant.val), 2));
+          (inputs.Laser_comm_spacecraft_optics_size.val *
+            hiddens.alpha_laser_comm_optics_constant.val), 2));
     },
   },
-  Laser_comm_photometric_magnitude:
-  {
+  Laser_comm_photometric_magnitude: {
     label: 'Equivalent Photometric Magnitude m<sub>v</sub>',
-    unit:
-    {
+    unit: {
       '': 1, // Unitless
     },
-    update()
-    {
+    update() {
       this.val = -2.5 * Math.log(outputs.Laser_comm_flux_at_earth.val / 3e10) / Math.log(10);
     },
   },
-  Laser_comm_rate_at_earth:
-  {
+  Laser_comm_rate_at_earth: {
     label: 'Laser Comm Rate Received in Array',
-    unit:
-    {
+    unit: {
       'ph/s': (1 / s),
     },
-    update()
-    {
+    update() {
       this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_constant.val *
         Math.pow(inputs.d_array_size.val, 2);
     },
   },
-  Laser_comm_bit_rate_received_in_array:
-  {
+  Laser_comm_bit_rate_received_in_array: {
     label: 'Laser Comm Bit Rate Received in Array',
-    unit:
-    {
+    unit: {
       'bits/s': 1,
     },
-    update()
-    {
+    update() {
       this.val = outputs.Laser_comm_rate_at_earth.val /
         inputs.Photons_per_bit_for_communication.val;
     },
   },
-  Laser_comm_received_wavelength_at_L0:
-  {
+  Laser_comm_received_wavelength_at_L0: {
     label: 'Laser Comm Wavelength at Speed at L0',
-    unit:
-    {
+    unit: {
       'nm': nm,
     },
-    update()
-    {
+    update() {
       var beta_0 = outputs.v_0_speed_to_L0.val / c_speed_light;
 
       this.val = inputs.lambda_laser_comm_wavelength.val *
         Math.pow((1 + beta_0) / (1 - beta_0), 1 / 2);
     },
   },
-  Laser_comm_received_wavelength_at_limiting_speed:
-  {
+  Laser_comm_received_wavelength_at_limiting_speed: {
     label: 'Laser Comm Wavelength at Limiting Speed',
-    unit:
-    {
+    unit: {
       'nm': nm,
     },
-    update()
-    {
-      var beta_infinity = outputs.v_infinity_speed_with_continued_illumination.val / c_speed_light;
+    update() {
+      var beta_infinity = outputs.v_infinity_speed_with_continued_illumination.val /
+        c_speed_light;
 
       this.val = inputs.lambda_laser_comm_wavelength.val *
         Math.pow((1 + beta_infinity) / (1 - beta_infinity), 1 / 2);
@@ -596,8 +484,7 @@ function getLength(obj) {
  * @param {*} n - Variable to check
  * @return {Boolean}
  */
-function isNumeric(n)
-{
+function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
@@ -606,8 +493,7 @@ function isNumeric(n)
  * @param {*} v - Variable to check
  * @return {Boolean}
  */
-function isDefined(v)
-{
+function isDefined(v) {
 
   return typeof v !== 'undefined';
 }
@@ -615,30 +501,24 @@ function isDefined(v)
 /** Initializes the HTML input and output tables
  * Note this is an immediately invoked function and will run immediately
  */
-(function init()
-{
+(function init() {
   /** Create a two column row
    *
    * @param {Array} cells - Array of cells/ columns to populate the row
    * @return {DOMElement} Table row/ tr DOM Element
    */
-  function createTableRow(cells)
-  {
+  function createTableRow(cells) {
     var row = document.createElement('tr');
 
-    for (var i = 0; i < cells.length; i++)
-    {
+    for (var i = 0; i < cells.length; i++) {
       var cell = document.createElement('td');
 
       // Create a cell with multiple children
-      if (Array.isArray(cells[i]))
-      {
-        for (var j = 0; j < cells[i].length; j++)
-        {
+      if (Array.isArray(cells[i])) {
+        for (var j = 0; j < cells[i].length; j++) {
           cell.appendChild(cells[i][j]);
         }
-      } else
-      {
+      } else {
         // Create a cell with one child
         cell.appendChild(cells[i]);
       }
@@ -651,10 +531,9 @@ function isDefined(v)
 
   // Populate the input form/ table with inputs
   var inputs_element = document.getElementById('inputs');
-  for (var id in inputs)
-  {
+  for (var id in inputs) {
     var input = inputs[id];
-    var label = input.htmlLabel =  document.createElement('label');
+    var label = input.htmlLabel = document.createElement('label');
     var element = input.element = document.createElement('input');
 
     label.innerHTML = input.label;
@@ -662,17 +541,14 @@ function isDefined(v)
     element.setAttribute('id', id);
 
     // Checkbox input
-    if (typeof input.checked !== 'undefined')
-    {
+    if (typeof input.checked !== 'undefined') {
       element.setAttribute('type', 'checkbox');
-      if (input.checked)
-      {                    // checked doesn't take a true/false, if it exists the box is checked.
+      if (input.checked) { // checked doesn't take a true/false, if it exists the box is checked.
         element.setAttribute('checked', true);
       }
 
       element.addEventListener('click', update, false);
-    } else
-    {
+    } else {
       element.setAttribute('type', 'number');
       element.setAttribute('value', input.val);
       element.setAttribute('style', 'width: 100%;');
@@ -680,10 +556,8 @@ function isDefined(v)
 
       // Convert default values to their correct units
       var i = 0;
-      for (var unit in input.unit)
-      {
-        if (i > 0)
-        {
+      for (var unit in input.unit) {
+        if (i > 0) {
           throw 'Only one input unit allowed';
         }
 
@@ -696,8 +570,7 @@ function isDefined(v)
     }
 
     // Add attributes to the DOMElement (such as max, min, and step for inputs)
-    for (var attribute in input.attributes)
-    {
+    for (var attribute in input.attributes) {
       element.setAttribute(attribute, input.attributes[attribute]);
     }
 
@@ -708,8 +581,7 @@ function isDefined(v)
 
   // Populate the output form/ table with outputs
   var outputs_element = document.getElementById('outputs');
-  for (var id in outputs)
-  {
+  for (var id in outputs) {
     var output = outputs[id];
     var label = document.createElement('label');
     var rowCells = [label];
@@ -721,8 +593,7 @@ function isDefined(v)
     outputs[id].unitVal = {};
 
     // Create a table cell with the output and its units
-    for (var unit in output.unit)
-    {
+    for (var unit in output.unit) {
       var unitVal = document.createElement('div');
       var unitLabel = document.createElement('label');
       unitLabel.className = 'unit';
@@ -750,38 +621,31 @@ function isDefined(v)
  * @param {DOMElement} input_element - HTML input to retrieve value from
  * @return {Boolean} Whether input is valid or not
  */
-function load(input_element)
-{
+function load(input_element) {
   var input = inputs[input_element.getAttribute('id')];
   input.val = input.rawVal = parseFloat(input_element.value);
 
   // Numerical input
-  if (isNumeric(input.val))
-  {
-    if (isDefined(input.attributes))
-    {
+  if (isNumeric(input.val)) {
+    if (isDefined(input.attributes)) {
       // Value is below allowed range
-      if (isDefined(input.attributes.min) && input.val < input.attributes.min)
-      {
+      if (isDefined(input.attributes.min) && input.val < input.attributes.min) {
         input.val = input.rawVal = input.attributes.min;
       }
 
       // Value is above allowed range
-      if (isDefined(input.attributes.max) && input.val > input.attributes.max)
-      {
+      if (isDefined(input.attributes.max) && input.val > input.attributes.max) {
         input.val = input.rawVal = input.attributes.max;
       }
     }
 
     // Update function to modify the entered value
-    if (isDefined(input.update))
-    {
+    if (isDefined(input.update)) {
       input.update();
     }
 
     // Convert to standard units
-    for (var unit in input.unit)
-    {
+    for (var unit in input.unit) {
       input.val *= input.unit[unit];
     }
 
@@ -789,8 +653,7 @@ function load(input_element)
   }
 
   // Checkbox input
-  if (isDefined(input.checked))
-  {
+  if (isDefined(input.checked)) {
     input.checked = input_element.checked;
 
     return true;
@@ -821,7 +684,7 @@ function checkCircular() {
     inputs.use_circular_sail.element.enabled = true;
     inputs.use_circular_sail.label = 'Use Circular Sail';
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail';
-  }else {
+  } else {
     inputs.d_array_size.label = 'Laser Array Side Length';
     inputs.use_circular_sail.element.checked = false;
     inputs.use_circular_sail.element.enabled = false;
@@ -833,7 +696,7 @@ function checkCircular() {
 
   if (laser_circular && sail_circular) {
     inputs.D_sail_size.label = 'Sail Diameter';
-  }else {
+  } else {
     inputs.D_sail_size.label = 'Sail Side Length';
   }
 
@@ -841,7 +704,7 @@ function checkCircular() {
 
   if (comm_circular) {
     inputs.Laser_comm_spacecraft_optics_size.label = 'Laser Comm Optical Diameter';
-  }else {
+  } else {
     inputs.Laser_comm_spacecraft_optics_size.label = 'Laser Comm Optical Side Length';
   }
 
@@ -849,41 +712,35 @@ function checkCircular() {
   updateHTMLLabelToMatch(inputs.d_array_size);
   updateHTMLLabelToMatch(inputs.Laser_comm_spacecraft_optics_size);
 
-  for (var id in hiddens)
-  {
+  for (var id in hiddens) {
     hiddens[id].update();
   }
 }
 
 /** Optimize the size of the sail
  */
-function optimize()
-{
+function optimize() {
   inputs.D_sail_size.element.disabled = inputs.auto_sail.checked;
 
-  if (!inputs.auto_sail.checked)
-  {
+  if (!inputs.auto_sail.checked) {
     return;
   }
 
   // Calculate sail size for sail mass = m0_payload_mass mass
   inputs.D_sail_size.element.value = inputs.D_sail_size.val =
     Math.sqrt(inputs.m0_payload_mass.val / (hiddens.xi_sail_constant.val *
-    inputs.rho_sail_density.val * inputs.h_sail_thickness.val));
+      inputs.rho_sail_density.val * inputs.h_sail_thickness.val));
 }
 
 /** Calculate the outputs
  */
-function calculate()
-{
-  for (var id in outputs)
-  {
+function calculate() {
+  for (var id in outputs) {
     // Calculate standard output value
     outputs[id].update();
 
     // Convert output's value to non-standard units
-    for (var unit in outputs[id].unit)
-    {
+    for (var unit in outputs[id].unit) {
       outputs[id].unitVal[unit] = (outputs[id].val / outputs[id].unit[unit]).toPrecision(3);
     }
   }
@@ -891,12 +748,9 @@ function calculate()
 
 /** Render the outputs
  */
-function render()
-{
-  for (var id in outputs)
-  {
-    for (var unit in outputs[id].unitVal)
-    {
+function render() {
+  for (var id in outputs) {
+    for (var unit in outputs[id].unitVal) {
       outputs[id].element[unit].innerHTML = outputs[id].unitVal[unit] + ' ';
     }
   }
@@ -907,10 +761,8 @@ function render()
  *
  * @param {Event} e
  */
-function update(e)
-{
-  if (!load(e.target))
-  {
+function update(e) {
+  if (!load(e.target)) {
     return;
   }
 
@@ -924,21 +776,16 @@ function update(e)
  * CSV download functionality
  */
 
-function downloadCSV()
-{
+function downloadCSV() {
   exportToCsv('test.csv', createCSV());
 }
 
-function exportToCsv(filename, rows)
-{
-  var processRow = function (row)
-  {
+function exportToCsv(filename, rows) {
+  var processRow = function(row) {
     var finalVal = '';
-    for (var j = 0; j < row.length; j++)
-    {
+    for (var j = 0; j < row.length; j++) {
       var innerValue = typeof row[j] === 'undefined' ? '' : row[j].toString();
-      if (row[j] instanceof Date)
-      {
+      if (row[j] instanceof Date) {
         innerValue = row[j].toLocaleString();
       };
 
@@ -954,23 +801,18 @@ function exportToCsv(filename, rows)
   };
 
   var csvFile = '';
-  for (var i = 0; i < rows.length; i++)
-  {
+  for (var i = 0; i < rows.length; i++) {
     csvFile += processRow(rows[i]);
   }
 
-  var blob = new Blob([csvFile],
-  {
+  var blob = new Blob([csvFile], {
     type: 'text/csv;charset=utf-8;',
   });
-  if (navigator.msSaveBlob)
-  { // IE 10+
+  if (navigator.msSaveBlob) { // IE 10+
     navigator.msSaveBlob(blob, filename);
-  } else
-  {
+  } else {
     var link = document.createElement('a');
-    if (link.download !== undefined)
-    { // feature detection
+    if (link.download !== undefined) { // feature detection
       // Browsers that support HTML5 download attribute
       var url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -983,8 +825,7 @@ function exportToCsv(filename, rows)
   }
 }
 
-function createCSV()
-{
+function createCSV() {
   var lineArray = [
     ['Inputs', 'Value', 'Unit', 'Outputs', 'Value', 'Unit'],
   ];
@@ -992,20 +833,17 @@ function createCSV()
   var inputsArray = Object.getOwnPropertyNames(inputs);
   var outputsArray = Object.getOwnPropertyNames(outputs);
 
-  for (var i = 0; i < Math.max(inputsArray.length, outputsArray.length); i++)
-  {
+  for (var i = 0; i < Math.max(inputsArray.length, outputsArray.length); i++) {
     var input = inputs[inputsArray[i]];
     var output = outputs[outputsArray[i]];
 
     var line = [];
 
-    if (isDefined(input))
-    {
+    if (isDefined(input)) {
       line.push(htmlToText(input.label));
 
       var j = 0;
-      for (var unit in input.unit)
-      {
+      for (var unit in input.unit) {
         // Convert standard unit values
         line.push(input.val / input.unit[unit]);
         line.push(htmlToText(unit));
@@ -1014,23 +852,19 @@ function createCSV()
       }
 
       // For unitless inputs
-      if (j != 1)
-      {
+      if (j != 1) {
         line.push(input.val);
         line.push('');
       }
-    } else
-    {
+    } else {
       // More outputs than inputs so add empty input line
       line = line.concat(['', '', '']);
     }
 
-    if (isDefined(output))
-    {
+    if (isDefined(output)) {
       line.push(htmlToText(output.label));
 
-      for (var unit in output.unitVal)
-      {
+      for (var unit in output.unitVal) {
         line.push(output.unitVal[unit]);
         line.push(htmlToText(unit));
       }
@@ -1045,10 +879,8 @@ function createCSV()
 /*
  * Convert unit in HTML format to text
  */
-function htmlToText(unitHTML)
-{
-  if (!isDefined(unitHTML))
-  {
+function htmlToText(unitHTML) {
+  if (!isDefined(unitHTML)) {
     return unitHTML;
   }
 
