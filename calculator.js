@@ -29,7 +29,7 @@ var hr = 3600 * s;
 var d = 86400 * s;
 var yr = 365 * d;
 
-// varants
+// Constants
 var c_speed_light = 299792458 * m / s;
 var g_n = 9.80665 * m / Math.pow(s, 2);
 var h_planck = 6.626070040e-34 * J / s;
@@ -199,17 +199,17 @@ var inputs = {
  * @property {Function} update() - Updates val
  */
 var hiddens = {
-  xi_sail_varant: {
+  xi_sail_constant: {
     update: function() {
       this.val = use_circular_sail.checked ? Math.PI / 4 : 1;
     },
   },
-  alpha_array_varant: {
+  alpha_array_constant: {
     update: function() {
       this.val = use_circular_array.checked ? 1.22 : 1;
     },
   },
-  alpha_laser_comm_optics_varant: {
+  alpha_laser_comm_optics_constant: {
     update: function() {
       this.val = use_circular_laser_comm_optics.checked ? 1.22 : 1;
     },
@@ -232,7 +232,7 @@ var outputs = {
       g: g,
     },
     update() {
-      this.val = (hiddens.xi_sail_varant.val * Math.pow(inputs.D_sail_size.val, 2) *
+      this.val = (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2) *
         inputs.h_sail_thickness.val * inputs.rho_sail_density.val);
     },
   },
@@ -270,7 +270,7 @@ var outputs = {
     },
     update() {
       this.val = (outputs.P0_laser_power_in_main_beam.val /
-        (hiddens.xi_sail_varant.val * Math.pow(inputs.D_sail_size.val, 2)));
+        (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2)));
     },
   },
   a_acceleration: {
@@ -292,7 +292,7 @@ var outputs = {
     },
     update() {
       this.val = (inputs.d_array_size.val * inputs.D_sail_size.val /
-        (2 * inputs.lambda_wavelength.val * hiddens.alpha_array_varant.val));
+        (2 * inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val));
     },
   },
   t0_time_to_L0: {
@@ -306,7 +306,7 @@ var outputs = {
         inputs.D_sail_size.val * outputs.m_total_mass.val /
         ((1 + inputs.epsilon_sub_r_reflection_coef.val) *
           outputs.P0_laser_power_in_main_beam.val *
-          inputs.lambda_wavelength.val * hiddens.alpha_array_varant.val)));
+          inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val)));
     },
   },
   v_0_speed_to_L0: {
@@ -319,7 +319,7 @@ var outputs = {
       this.val = (Math.sqrt((1 + inputs.epsilon_sub_r_reflection_coef.val) *
         outputs.P0_laser_power_in_main_beam.val * inputs.d_array_size.val *
         inputs.D_sail_size.val /
-        (c_speed_light * inputs.lambda_wavelength.val * hiddens.alpha_array_varant.val *
+        (c_speed_light * inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val *
           outputs.m_total_mass.val)));
     },
   },
@@ -412,7 +412,7 @@ var outputs = {
         (h_planck * c_speed_light / (inputs.lambda_laser_comm_wavelength.val)) /
         Math.pow(inputs.L_target.val * 2 * inputs.lambda_laser_comm_wavelength.val /
           (inputs.Laser_comm_spacecraft_optics_size.val *
-            hiddens.alpha_laser_comm_optics_varant.val), 2));
+            hiddens.alpha_laser_comm_optics_constant.val), 2));
     },
   },
   Laser_comm_photometric_magnitude: {
@@ -430,7 +430,7 @@ var outputs = {
       'ph/s': (1 / s),
     },
     update() {
-      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_varant.val *
+      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_constant.val *
         Math.pow(inputs.d_array_size.val, 2);
     },
   },
@@ -728,7 +728,7 @@ function optimize() {
 
   // Calculate sail size for sail mass = m0_payload_mass mass
   inputs.D_sail_size.element.value = inputs.D_sail_size.val =
-    Math.sqrt(inputs.m0_payload_mass.val / (hiddens.xi_sail_varant.val *
+    Math.sqrt(inputs.m0_payload_mass.val / (hiddens.xi_sail_constant.val *
       inputs.rho_sail_density.val * inputs.h_sail_thickness.val));
 }
 
