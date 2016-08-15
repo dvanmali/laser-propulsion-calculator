@@ -24,6 +24,11 @@ var GW = 1e9 * W;
 var J = 1;
 var tons_TNT = 4.2e9 * J;
 
+var K = 1; // Kelvin
+
+var Pa = 1;
+var psi = 1.01325e5 * Pa / 14.7;
+
 var s = 1;
 var hr = 3600 * s;
 var d = 86400 * s;
@@ -33,6 +38,7 @@ var yr = 365 * d;
 var c_speed_light = 299792458 * m / s;
 var g_n = 9.80665 * m / Math.pow(s, 2);
 var h_planck = 6.626070040e-34 * J / s;
+var sigma_stefan_boltzmann = 5.67036713 * Math.pow(10, -8) * W / (Math.pow(s, 2) * Math.pow(K, 4));
 
 /**
  * Input variables
@@ -55,6 +61,24 @@ var inputs = {
   },
   use_circular_sail: {
     label: 'Use Circular Sail',
+    checked: false,
+    update: function() {
+      if (inputs.use_circular_array.checked) {
+        enableInput(this);
+      } else {
+        disableInput(this);
+      }
+
+      var use_circular_sail = this.checked;
+      var use_spherical_sail = inputs.use_spherical_sail.checked;
+
+      if (use_circular_sail && use_spherical_sail) {
+        disableInput(inputs.use_spherical_sail);
+      }
+    },
+  },
+  use_spherical_sail: {
+    label: 'Use Spherical Sail',
     checked: false,
   },
   auto_sail: {
@@ -83,6 +107,30 @@ var inputs = {
   },
   epsilon_sub_r_reflection_coef: {
     label: 'Sail Reflection Efficiency (0 - 1)',
+    val: 1,
+    attributes: {
+      min: 0,
+      max: 1,
+    },
+  },
+  alpha_reflector_absorption: {
+    label: 'Sail Absorption of Light not Reflected (0 - 1)',
+    val: 1,
+    attributes: {
+      min: 0,
+      max: 1,
+    },
+  },
+  epsilon_emissivity_front: {
+    label: 'Sail Front Emissivity (0 - 1)',
+    val: 1,
+    attributes: {
+      min: 0,
+      max: 1,
+    },
+  },
+  epsilon_emissivity_back: {
+    label: 'Sail Back Emissivity (0 - 1)',
     val: 1,
     attributes: {
       min: 0,
@@ -201,17 +249,35 @@ var inputs = {
 var hiddens = {
   xi_sail_constant: {
     update: function() {
-      this.val = use_circular_sail.checked ? Math.PI / 4 : 1;
+      if (inputs.use_circular_sail.checked) {
+        this.val = Math.PI / 4;
+      } else if (inputs.use_spherical_sail.checked) {
+        this.val = Math.PI;
+      } else {
+        this.val = 1;
+      }
+    },
+  },
+  xi_array_constant: {
+    update: function() {
+      this.val = inputs.use_circular_array.checked ? Math.PI / 4 : 1;
     },
   },
   alpha_array_constant: {
     update: function() {
-      this.val = use_circular_array.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_array.checked ? 1.22 : 1;
     },
   },
   alpha_laser_comm_optics_constant: {
     update: function() {
-      this.val = use_circular_laser_comm_optics.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_laser_comm_optics.checked ? 1.22 : 1;
+    },
+  },
+  total_light_efficiency: {
+    update: function() {
+      this.val = (2 * inputs.epsilon_sub_r_reflection_coef.val +
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val
+      );
     },
   },
 };
@@ -273,6 +339,27 @@ var outputs = {
         (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2)));
     },
   },
+  Force_on_Sail: {
+    label: 'Total Force on Sail',
+    unit: {
+      'N': 1,
+    },
+    update() {
+      this.val = hiddens.total_light_efficiency.val *
+        outputs.P0_laser_power_in_main_beam.val / (c_speed_light);
+    },
+  },
+  Peak_Sail_Pressure: {
+    label: 'Peak Sail Pressure',
+    unit: {
+      'Pa': 1,
+      'psi': psi,
+    },
+    update() {
+      this.val = hiddens.total_light_efficiency.val *
+        outputs.flux_on_sail.val / (c_speed_light);
+    },
+  },
   a_acceleration: {
     label: 'Peak Acceleration',
     unit: {
@@ -280,7 +367,7 @@ var outputs = {
       'g<sub>n</sub>': g_n,
     },
     update() {
-      this.val = (1 + inputs.epsilon_sub_r_reflection_coef.val) *
+      this.val = hiddens.total_light_efficiency.val *
         outputs.P0_laser_power_in_main_beam.val / (outputs.m_total_mass.val * c_speed_light);
     },
   },
@@ -304,7 +391,7 @@ var outputs = {
     update() {
       this.val = (Math.sqrt(c_speed_light * inputs.d_array_size.val *
         inputs.D_sail_size.val * outputs.m_total_mass.val /
-        ((1 + inputs.epsilon_sub_r_reflection_coef.val) *
+        (hiddens.total_light_efficiency.val *
           outputs.P0_laser_power_in_main_beam.val *
           inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val)));
     },
@@ -316,7 +403,7 @@ var outputs = {
       '% c': (c_speed_light / 100),
     },
     update() {
-      this.val = (Math.sqrt((1 + inputs.epsilon_sub_r_reflection_coef.val) *
+      this.val = (Math.sqrt(hiddens.total_light_efficiency.val *
         outputs.P0_laser_power_in_main_beam.val * inputs.d_array_size.val *
         inputs.D_sail_size.val /
         (c_speed_light * inputs.lambda_wavelength.val * hiddens.alpha_array_constant.val *
@@ -401,6 +488,36 @@ var outputs = {
       this.val = inputs.L_target.val / outputs.v_infinity_speed_with_continued_illumination.val;
     },
   },
+  flux_absorbed_by_sail: {
+    label: 'Max Flux Absorbed by Sail',
+    unit: {
+      'GW/m<sup>2</sup>': (GW / Math.pow(m, 2)),
+    },
+    update() {
+      this.val = (outputs.flux_on_sail.val *
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val);
+    },
+  },
+  power_absorbed_by_sail: {
+    label: 'Max Power Absorbed by Sail',
+    unit: {
+      'GW': (GW / Math.pow(m, 2)),
+    },
+    update() {
+      this.val = (outputs.flux_absorbed_by_sail.val *
+        (hiddens.xi_sail_constant.val * Math.pow(inputs.D_sail_size.val, 2)));
+    },
+  },
+  sail_equilibrium_temperature: {
+    label: 'Sail Equilibrium Temperature',
+    unit: {
+      'K': 1,
+    },
+    update() {
+      this.val = Math.pow((outputs.flux_absorbed_by_sail.val) / (sigma_stefan_boltzmann *
+        (inputs.epsilon_emissivity_front.val + inputs.epsilon_emissivity_back.val)), 1 / 4);
+    },
+  },
   Laser_comm_flux_at_earth: {
     label: 'Laser Comm Flux at Earth',
     unit: {
@@ -411,7 +528,7 @@ var outputs = {
         inputs.Laser_comm_spacecraft_power_peak.val /
         (h_planck * c_speed_light / (inputs.lambda_laser_comm_wavelength.val)) /
         Math.pow(inputs.L_target.val * 2 * inputs.lambda_laser_comm_wavelength.val /
-          (inputs.Laser_comm_spacecraft_optics_size.val *
+          (inputs.Laser_comm_spacecraft_optics_size.val /
             hiddens.alpha_laser_comm_optics_constant.val), 2));
     },
   },
@@ -430,7 +547,7 @@ var outputs = {
       'ph/s': (1 / s),
     },
     update() {
-      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_constant.val *
+      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_array_constant.val *
         Math.pow(inputs.d_array_size.val, 2);
     },
   },
@@ -641,7 +758,9 @@ function load(input_element) {
 
     // Update function to modify the entered value
     if (isDefined(input.update)) {
-      input.update();
+      if (input.update() === false) {
+        return false;
+      }
     }
 
     // Convert to standard units
@@ -654,6 +773,12 @@ function load(input_element) {
 
   // Checkbox input
   if (isDefined(input.checked)) {
+    if (isDefined(input.update)) {
+      if (input.update() === false) {
+        return false;
+      }
+    }
+
     input.checked = input_element.checked;
 
     return true;
@@ -673,6 +798,35 @@ function updateHTMLLabelToMatch(input) {
   }
 }
 
+function enableInput(input) {
+  input.element.disabled = false;
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i > -1) {
+    input.label = label.substring(0, i);
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+}
+
+function disableInput(input) {
+  input.element.disabled = true;
+  input.element.checked = false;
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i === -1) {
+    input.label += ' (Disabled)';
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+
+  if (isDefined(input.checked)) {
+    input.checked = false;
+  }
+}
+
 /** Checks if sail_circular or laser_circular has been changed, and if so, changes the hidden
  *  variables they control and updates the text on the corresponding labels.
  */
@@ -686,15 +840,24 @@ function checkCircular() {
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail';
   } else {
     inputs.d_array_size.label = 'Laser Array Side Length';
+    inputs.use_circular_sail.checked = false;
     inputs.use_circular_sail.element.checked = false;
     inputs.use_circular_sail.element.enabled = false;
     inputs.use_circular_sail.label = 'Use Circular Sail (Disabled)';
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail (Disabled)';
+
+    inputs.use_spherical_sail.checked = false;
+    inputs.use_spherical_sail.element.checked = false;
+    inputs.use_spherical_sail.element.enabled = false;
+    inputs.use_spherical_sail.label = 'Use Spherical Sail (Disabled)';
+    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail (Disabled)';
   }
 
   var sail_circular = use_circular_sail.checked;
+  var sail_spherical = use_spherical_sail.checked;
+  var is_sail_round = sail_circular || sail_spherical;
 
-  if (laser_circular && sail_circular) {
+  if (laser_circular && is_sail_round) {
     inputs.D_sail_size.label = 'Sail Diameter';
   } else {
     inputs.D_sail_size.label = 'Sail Side Length';
@@ -766,7 +929,7 @@ function update(e) {
     return;
   }
 
-  checkCircular();
+  // checkCircular();
   optimize();
   calculate();
   render();
@@ -777,7 +940,8 @@ function update(e) {
  */
 
 function downloadCSV() {
-  exportToCsv('test.csv', createCSV());
+  var filename = prompt('Enter filename for CSV', 'laser_propulsion_calculations.csv');
+  exportToCsv(filename, createCSV());
 }
 
 function exportToCsv(filename, rows) {
@@ -853,8 +1017,15 @@ function createCSV() {
 
       // For unitless inputs
       if (j != 1) {
-        line.push(input.val);
-        line.push('');
+        if (isDefined(input.checked)) {
+          //Is a checkbox
+          line.push(input.checked);
+          line.push('checkbox');
+        } else {
+          //is a unitless number.
+          line.push(input.val);
+          line.push('');
+        }
       }
     } else {
       // More outputs than inputs so add empty input line

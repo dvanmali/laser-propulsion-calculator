@@ -1,3 +1,7 @@
+2016-08-15
+
+Changelog abandoned due to disuse. Will remove in future commit.
+
 2016-06-01
 
 Fixed Bugs
