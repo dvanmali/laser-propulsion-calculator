@@ -62,20 +62,6 @@ var inputs = {
   use_circular_sail: {
     label: 'Use Circular Sail',
     checked: false,
-    update: function() {
-      if (inputs.use_circular_array.checked) {
-        enableInput(this);
-      } else {
-        disableInput(this);
-      }
-
-      var use_circular_sail = this.checked;
-      var use_spherical_sail = inputs.use_spherical_sail.checked;
-
-      if (use_circular_sail && use_spherical_sail) {
-        disableInput(inputs.use_spherical_sail);
-      }
-    },
   },
   use_spherical_sail: {
     label: 'Use Spherical Sail',
@@ -276,7 +262,8 @@ var hiddens = {
   total_light_efficiency: {
     update: function() {
       this.val = (2 * inputs.epsilon_sub_r_reflection_coef.val +
-        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption
+        .val
       );
     },
   },
@@ -495,7 +482,8 @@ var outputs = {
     },
     update() {
       this.val = (outputs.flux_on_sail.val *
-        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val);
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val
+      );
     },
   },
   power_absorbed_by_sail: {
@@ -515,7 +503,8 @@ var outputs = {
     },
     update() {
       this.val = Math.pow((outputs.flux_absorbed_by_sail.val) / (sigma_stefan_boltzmann *
-        (inputs.epsilon_emissivity_front.val + inputs.epsilon_emissivity_back.val)), 1 / 4);
+          (inputs.epsilon_emissivity_front.val + inputs.epsilon_emissivity_back.val)), 1 /
+        4);
     },
   },
   Laser_comm_flux_at_earth: {
@@ -835,11 +824,17 @@ function checkCircular() {
 
   if (laser_circular) {
     inputs.d_array_size.label = 'Laser Array Diameter';
+
     inputs.use_circular_sail.element.enabled = true;
     inputs.use_circular_sail.label = 'Use Circular Sail';
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail';
+
+    inputs.use_spherical_sail.element.enabled = true;
+    inputs.use_spherical_sail.label = 'Use Spherical Sail';
+    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail';
   } else {
     inputs.d_array_size.label = 'Laser Array Side Length';
+
     inputs.use_circular_sail.checked = false;
     inputs.use_circular_sail.element.checked = false;
     inputs.use_circular_sail.element.enabled = false;
@@ -929,7 +924,7 @@ function update(e) {
     return;
   }
 
-  // checkCircular();
+  checkCircular();
   optimize();
   calculate();
   render();
