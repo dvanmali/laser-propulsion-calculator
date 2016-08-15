@@ -246,7 +246,7 @@ var hiddens = {
   },
   xi_array_constant: {
     update: function() {
-      this.val = inputs.use_circular_array.checked ? Math.PI / 4 : 1;
+      this.val = inputs.use_circular_sail.checked ? Math.PI / 4 : 1;
     },
   },
   alpha_array_constant: {
@@ -536,7 +536,7 @@ var outputs = {
       'ph/s': (1 / s),
     },
     update() {
-      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_array_constant.val *
+      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_constant.val *
         Math.pow(inputs.d_array_size.val, 2);
     },
   },

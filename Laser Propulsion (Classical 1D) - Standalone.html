@@ -145,7 +145,7 @@
     <p>Photon Propulsion Calculator - Based on the calculations in "A Roadmap to Interstellar Flight" - <a href=http://arxiv.org/abs/1604.01356 target="_blank">http://arxiv.org/abs/1604.01356</a></p>
   </footer>
   <script type='text/javascript'>
-  'use strict';
+'use strict';
 
 /**
  * This document uses JSDoc (http://usejsdoc.org) for documentation.
@@ -208,6 +208,10 @@ var inputs = {
   },
   use_circular_sail: {
     label: 'Use Circular Sail',
+    checked: false,
+  },
+  use_spherical_sail: {
+    label: 'Use Spherical Sail',
     checked: false,
   },
   auto_sail: {
@@ -378,28 +382,35 @@ var inputs = {
 var hiddens = {
   xi_sail_constant: {
     update: function() {
-      this.val = use_circular_sail.checked ? Math.PI / 4 : 1;
+      if (inputs.use_circular_sail.checked) {
+        this.val = Math.PI / 4;
+      } else if (inputs.use_spherical_sail.checked) {
+        this.val = Math.PI;
+      } else {
+        this.val = 1;
+      }
     },
   },
   xi_array_constant: {
     update: function() {
-      this.val = use_circular_array.checked ? Math.PI / 4 : 1;
+      this.val = inputs.use_circular_sail.checked ? Math.PI / 4 : 1;
     },
   },
   alpha_array_constant: {
     update: function() {
-      this.val = use_circular_array.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_array.checked ? 1.22 : 1;
     },
   },
   alpha_laser_comm_optics_constant: {
     update: function() {
-      this.val = use_circular_laser_comm_optics.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_laser_comm_optics.checked ? 1.22 : 1;
     },
   },
   total_light_efficiency: {
     update: function() {
       this.val = (2 * inputs.epsilon_sub_r_reflection_coef.val +
-        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption
+        .val
       );
     },
   },
@@ -618,7 +629,8 @@ var outputs = {
     },
     update() {
       this.val = (outputs.flux_on_sail.val *
-        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val);
+        (1 - inputs.epsilon_sub_r_reflection_coef.val) * inputs.alpha_reflector_absorption.val
+      );
     },
   },
   power_absorbed_by_sail: {
@@ -638,7 +650,8 @@ var outputs = {
     },
     update() {
       this.val = Math.pow((outputs.flux_absorbed_by_sail.val) / (sigma_stefan_boltzmann *
-        (inputs.epsilon_emissivity_front.val + inputs.epsilon_emissivity_back.val)), 1 / 4);
+          (inputs.epsilon_emissivity_front.val + inputs.epsilon_emissivity_back.val)), 1 /
+        4);
     },
   },
   Laser_comm_flux_at_earth: {
@@ -670,7 +683,7 @@ var outputs = {
       'ph/s': (1 / s),
     },
     update() {
-      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_array_constant.val *
+      this.val = outputs.Laser_comm_flux_at_earth.val * hiddens.xi_sail_constant.val *
         Math.pow(inputs.d_array_size.val, 2);
     },
   },
@@ -881,7 +894,9 @@ function load(input_element) {
 
     // Update function to modify the entered value
     if (isDefined(input.update)) {
-      input.update();
+      if (input.update() === false) {
+        return false;
+      }
     }
 
     // Convert to standard units
@@ -894,6 +909,12 @@ function load(input_element) {
 
   // Checkbox input
   if (isDefined(input.checked)) {
+    if (isDefined(input.update)) {
+      if (input.update() === false) {
+        return false;
+      }
+    }
+
     input.checked = input_element.checked;
 
     return true;
@@ -913,6 +934,35 @@ function updateHTMLLabelToMatch(input) {
   }
 }
 
+function enableInput(input) {
+  input.element.disabled = false;
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i > -1) {
+    input.label = label.substring(0, i);
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+}
+
+function disableInput(input) {
+  input.element.disabled = true;
+  input.element.checked = false;
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i === -1) {
+    input.label += ' (Disabled)';
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+
+  if (isDefined(input.checked)) {
+    input.checked = false;
+  }
+}
+
 /** Checks if sail_circular or laser_circular has been changed, and if so, changes the hidden
  *  variables they control and updates the text on the corresponding labels.
  */
@@ -921,21 +971,35 @@ function checkCircular() {
 
   if (laser_circular) {
     inputs.d_array_size.label = 'Laser Array Diameter';
+
     inputs.use_circular_sail.element.enabled = true;
     inputs.use_circular_sail.label = 'Use Circular Sail';
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail';
+
+    inputs.use_spherical_sail.element.enabled = true;
+    inputs.use_spherical_sail.label = 'Use Spherical Sail';
+    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail';
   } else {
     inputs.d_array_size.label = 'Laser Array Side Length';
+
     inputs.use_circular_sail.checked = false;
     inputs.use_circular_sail.element.checked = false;
     inputs.use_circular_sail.element.enabled = false;
     inputs.use_circular_sail.label = 'Use Circular Sail (Disabled)';
     inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail (Disabled)';
+
+    inputs.use_spherical_sail.checked = false;
+    inputs.use_spherical_sail.element.checked = false;
+    inputs.use_spherical_sail.element.enabled = false;
+    inputs.use_spherical_sail.label = 'Use Spherical Sail (Disabled)';
+    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail (Disabled)';
   }
 
   var sail_circular = use_circular_sail.checked;
+  var sail_spherical = use_spherical_sail.checked;
+  var is_sail_round = sail_circular || sail_spherical;
 
-  if (laser_circular && sail_circular) {
+  if (laser_circular && is_sail_round) {
     inputs.D_sail_size.label = 'Sail Diameter';
   } else {
     inputs.D_sail_size.label = 'Sail Side Length';
