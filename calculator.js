@@ -59,20 +59,32 @@ var inputs = {
     },
     val: 0.001,
   },
+  auto_sail: {
+    label: 'Use Optimal Sail',
+    type: 'radio',
+    val: true,
+    attributes: {
+      name: 0
+    },
+  },
   use_circular_sail: {
     label: 'Use Circular Sail',
-    checked: false,
+    type: 'radio',
+    val: false,
+    attributes: {
+      name: 0
+    },
   },
   use_spherical_sail: {
     label: 'Use Spherical Sail',
-    checked: false,
-  },
-  auto_sail: {
-    label: 'Use Optimal Sail Size',
-    checked: true,
+    type: 'radio',
+    val: false,
+    attributes: {
+      name: 0
+    },
   },
   D_sail_size: {
-    label: 'Sail Side Length',
+    label: 'Sail Diameter',
     unit: {
       m: m,
     },
@@ -125,7 +137,19 @@ var inputs = {
   },
   use_circular_array: {
     label: 'Use Circular Laser Array',
-    checked: false,
+    type: 'checkbox',
+    val: true,
+    update: function() {
+      if (this.val) {
+        enableInput(inputs.use_circular_sail);
+        enableInput(inputs.use_spherical_sail);
+      } else {
+        disableInput(inputs.use_circular_sail);
+        disableInput(inputs.use_spherical_sail);
+        inputs.auto_sail.val = true;
+        inputs.auto_sail.element.checked = true;
+      }
+    },
   },
   d_array_size: {
     label: 'Laser Array Side Length',
@@ -208,7 +232,8 @@ var inputs = {
   },
   use_circular_laser_comm_optics: {
     label: 'Use Circular Comm Optics',
-    checked: true,
+    type: 'checkbox',
+    val: true,
   },
   Laser_comm_spacecraft_optics_size: {
     label: 'Spacecraft Laser Comm Optical Size',
@@ -235,9 +260,9 @@ var inputs = {
 var hiddens = {
   xi_sail_constant: {
     update: function() {
-      if (inputs.use_circular_sail.checked) {
+      if (inputs.use_circular_sail.val) {
         this.val = Math.PI / 4;
-      } else if (inputs.use_spherical_sail.checked) {
+      } else if (inputs.use_spherical_sail.val) {
         this.val = Math.PI;
       } else {
         this.val = 1;
@@ -246,17 +271,17 @@ var hiddens = {
   },
   xi_array_constant: {
     update: function() {
-      this.val = inputs.use_circular_sail.checked ? Math.PI / 4 : 1;
+      this.val = inputs.use_circular_sail.val ? Math.PI / 4 : 1;
     },
   },
   alpha_array_constant: {
     update: function() {
-      this.val = inputs.use_circular_array.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_array.val ? 1.22 : 1;
     },
   },
   alpha_laser_comm_optics_constant: {
     update: function() {
-      this.val = inputs.use_circular_laser_comm_optics.checked ? 1.22 : 1;
+      this.val = inputs.use_circular_laser_comm_optics.val ? 1.22 : 1;
     },
   },
   total_light_efficiency: {
@@ -604,6 +629,46 @@ function isDefined(v) {
   return typeof v !== 'undefined';
 }
 
+/**
+ * Enable a disabled input
+ * Remove "(Disabled)" from its label
+ */
+function enableInput(input) {
+  input.element.disabled = false;
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i > -1) {
+    input.label = label.substring(0, i);
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+}
+
+/**
+ * Disable an enabled input
+ * Append "(Disabled)" to its label
+ */
+function disableInput(input) {
+  input.element.disabled = true;
+
+  if (isDefined(input.element.checked)) {
+    input.element.checked = false;
+  }
+
+  var label = input.label;
+  var i = label.search(/\s\(Disabled\)/g);
+  if (i === -1) {
+    input.label += ' (Disabled)';
+  }
+
+  input.htmlLabel.innerHTML = input.label;
+
+  if (input.type === 'radio' || input.type === 'checked') {
+    input.val = false;
+  }
+}
+
 /** Initializes the HTML input and output tables
  * Note this is an immediately invoked function and will run immediately
  */
@@ -639,40 +704,47 @@ function isDefined(v) {
   var inputs_element = document.getElementById('inputs');
   for (var id in inputs) {
     var input = inputs[id];
-    var label = input.htmlLabel = document.createElement('label');
-    var element = input.element = document.createElement('input');
 
+    var label = input.htmlLabel = document.createElement('label');
     label.innerHTML = input.label;
     label.setAttribute('for', id);
+
+    var element = input.element = document.createElement('input');
+    element.setAttribute('type', (input.type || 'number'));
     element.setAttribute('id', id);
 
-    // Checkbox input
-    if (typeof input.checked !== 'undefined') {
-      element.setAttribute('type', 'checkbox');
-      if (input.checked) { // checked doesn't take a true/false, if it exists the box is checked.
-        element.setAttribute('checked', true);
-      }
-
-      element.addEventListener('click', update, false);
-    } else {
-      element.setAttribute('type', 'number');
-      element.setAttribute('value', input.val);
-      element.setAttribute('style', 'width: 100%;');
-      element.addEventListener('input', update, false);
-
-      // Convert default values to their correct units
-      var i = 0;
-      for (var unit in input.unit) {
-        if (i > 0) {
-          throw 'Only one input unit allowed';
+    switch (input.type) {
+      case 'checkbox':
+        if (input.val) {
+          element.setAttribute('checked', true);
         }
+        element.addEventListener('click', updateInput, false);
 
-        label.innerHTML += ' <label class="unit">(' + unit + ')</label>';
-        input.val *= input.unit[unit];
+        break;
+      case 'radio':
+        if (input.val) {
+          element.setAttribute('checked', true);
+        }
+        element.addEventListener('click', updateInput, false);
 
-        // Only allow one unit for inputs
-        i++;
-      }
+        break;
+      default: // Number
+        element.setAttribute('value', input.val);
+        element.addEventListener('input', updateInput, false);
+
+        // Convert default values to their correct units
+        var i = 0;
+        for (var unit in input.unit) {
+          if (i > 0) {
+            throw 'Only one input unit allowed';
+          }
+
+          label.innerHTML += ' <label class="unit">(' + unit + ')</label>';
+          input.val *= input.unit[unit];
+
+          // Only allow one unit for inputs
+          i++;
+        }
     }
 
     // Add attributes to the DOMElement (such as max, min, and step for inputs)
@@ -713,26 +785,40 @@ function isDefined(v) {
     outputs_element.appendChild(table_row);
   }
 
-  // Calculate and display outputs according to the default input values
-  checkCircular();
-  optimize();
-  calculate();
-  render();
-
   document.getElementById('download_csv').addEventListener('click', downloadCSV, false);
+
+  update();
 })();
 
 /** Record changes to an HTML input
  *
- * @param {DOMElement} input_element - HTML input to retrieve value from
- * @return {Boolean} Whether input is valid or not
+ * @param {Event} e - Event
  */
-function load(input_element) {
+function updateInput(e) {
+  var input_element = e.target;
   var input = inputs[input_element.getAttribute('id')];
+  var type = input.type;
   input.val = input.rawVal = parseFloat(input_element.value);
 
-  // Numerical input
-  if (isNumeric(input.val)) {
+  if (type === 'checkbox') {
+    input.val = input_element.checked;
+
+    if (isDefined(input.update) && input.update() === false) {
+      return;
+    }
+
+  } else if (type === 'radio') {
+    if (isDefined(input.update) && input.update() === false) {
+      return;
+    }
+
+    for (var id in inputs) {
+      var i = inputs[id];
+      if (isDefined(i.type) && i.type === 'radio') {
+        i.val = i.element.checked;
+      }
+    }
+  } else {
     if (isDefined(input.attributes)) {
       // Value is below allowed range
       if (isDefined(input.attributes.min) && input.val < input.attributes.min) {
@@ -746,153 +832,33 @@ function load(input_element) {
     }
 
     // Update function to modify the entered value
-    if (isDefined(input.update)) {
-      if (input.update() === false) {
-        return false;
-      }
+    if (isDefined(input.update) && input.update() === false) {
+      return;
     }
 
     // Convert to standard units
     for (var unit in input.unit) {
       input.val *= input.unit[unit];
     }
-
-    return true;
   }
 
-  // Checkbox input
-  if (isDefined(input.checked)) {
-    if (isDefined(input.update)) {
-      if (input.update() === false) {
-        return false;
-      }
-    }
-
-    input.checked = input_element.checked;
-
-    return true;
-  }
+  update();
 }
 
-/** Updates the input's correspoding HTML <label> tag's contents to be the same as input.label;
- *  @param {Input} an element of inputs to be updated
+/** Event handler when inputs are changed
+ * Re-calculate the outputs based on the new inputs
+ *
+ * @param {Event} e
  */
-function updateHTMLLabelToMatch(input) {
-  input.htmlLabel.innerHTML = input.label;
-  if (getLength(input.unit) == 1) {
-    var unit = Object.keys(input.unit)[0];
-    input.htmlLabel.innerHTML += ' <label class="unit">(' + unit + ')</label>';
-  } else {
-    throw 'Only one input unit allowed';
-  }
-}
-
-function enableInput(input) {
-  input.element.disabled = false;
-
-  var label = input.label;
-  var i = label.search(/\s\(Disabled\)/g);
-  if (i > -1) {
-    input.label = label.substring(0, i);
-  }
-
-  input.htmlLabel.innerHTML = input.label;
-}
-
-function disableInput(input) {
-  input.element.disabled = true;
-  input.element.checked = false;
-
-  var label = input.label;
-  var i = label.search(/\s\(Disabled\)/g);
-  if (i === -1) {
-    input.label += ' (Disabled)';
-  }
-
-  input.htmlLabel.innerHTML = input.label;
-
-  if (isDefined(input.checked)) {
-    input.checked = false;
-  }
-}
-
-/** Checks if sail_circular or laser_circular has been changed, and if so, changes the hidden
- *  variables they control and updates the text on the corresponding labels.
- */
-function checkCircular() {
-  var laser_circular = use_circular_array.checked;
-
-  if (laser_circular) {
-    inputs.d_array_size.label = 'Laser Array Diameter';
-
-    inputs.use_circular_sail.element.enabled = true;
-    inputs.use_circular_sail.label = 'Use Circular Sail';
-    inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail';
-
-    inputs.use_spherical_sail.element.enabled = true;
-    inputs.use_spherical_sail.label = 'Use Spherical Sail';
-    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail';
-  } else {
-    inputs.d_array_size.label = 'Laser Array Side Length';
-
-    inputs.use_circular_sail.checked = false;
-    inputs.use_circular_sail.element.checked = false;
-    inputs.use_circular_sail.element.enabled = false;
-    inputs.use_circular_sail.label = 'Use Circular Sail (Disabled)';
-    inputs.use_circular_sail.htmlLabel.innerHTML = 'Use Circular Sail (Disabled)';
-
-    inputs.use_spherical_sail.checked = false;
-    inputs.use_spherical_sail.element.checked = false;
-    inputs.use_spherical_sail.element.enabled = false;
-    inputs.use_spherical_sail.label = 'Use Spherical Sail (Disabled)';
-    inputs.use_spherical_sail.htmlLabel.innerHTML = 'Use Spherical Sail (Disabled)';
-  }
-
-  var sail_circular = use_circular_sail.checked;
-  var sail_spherical = use_spherical_sail.checked;
-  var is_sail_round = sail_circular || sail_spherical;
-
-  if (laser_circular && is_sail_round) {
-    inputs.D_sail_size.label = 'Sail Diameter';
-  } else {
-    inputs.D_sail_size.label = 'Sail Side Length';
-  }
-
-  var comm_circular = use_circular_laser_comm_optics.checked;
-
-  if (comm_circular) {
-    inputs.Laser_comm_spacecraft_optics_size.label = 'Laser Comm Optical Diameter';
-  } else {
-    inputs.Laser_comm_spacecraft_optics_size.label = 'Laser Comm Optical Side Length';
-  }
-
-  updateHTMLLabelToMatch(inputs.D_sail_size);
-  updateHTMLLabelToMatch(inputs.d_array_size);
-  updateHTMLLabelToMatch(inputs.Laser_comm_spacecraft_optics_size);
-
+function update(e) {
+  // Update hidden variables
   for (var id in hiddens) {
     hiddens[id].update();
   }
-}
 
-/** Optimize the size of the sail
- */
-function optimize() {
-  inputs.D_sail_size.element.disabled = inputs.auto_sail.checked;
+  optimizeSailSize();
 
-  if (!inputs.auto_sail.checked) {
-    return;
-  }
-
-  // Calculate sail size for sail mass = m0_payload_mass mass
-  inputs.D_sail_size.element.value = inputs.D_sail_size.val =
-    Math.sqrt(inputs.m0_payload_mass.val / (hiddens.xi_sail_constant.val *
-      inputs.rho_sail_density.val * inputs.h_sail_thickness.val));
-}
-
-/** Calculate the outputs
- */
-function calculate() {
+  // Update output variables
   for (var id in outputs) {
     // Calculate standard output value
     outputs[id].update();
@@ -902,11 +868,8 @@ function calculate() {
       outputs[id].unitVal[unit] = (outputs[id].val / outputs[id].unit[unit]).toPrecision(3);
     }
   }
-}
 
-/** Render the outputs
- */
-function render() {
+  // Update output view
   for (var id in outputs) {
     for (var unit in outputs[id].unitVal) {
       outputs[id].element[unit].innerHTML = outputs[id].unitVal[unit] + ' ';
@@ -914,32 +877,38 @@ function render() {
   }
 }
 
-/** Event handler when inputs are changed
- * Re-calculate the outputs based on the new inputs
- *
- * @param {Event} e
+/** 
+ * Optimize the size of the sail
  */
-function update(e) {
-  if (!load(e.target)) {
+function optimizeSailSize() {
+  inputs.D_sail_size.element.disabled = inputs.auto_sail.val;
+
+  if (!inputs.auto_sail.val) {
     return;
   }
 
-  checkCircular();
-  optimize();
-  calculate();
-  render();
+  // Calculate sail size for sail mass = m0_payload_mass mass
+  inputs.D_sail_size.element.value = inputs.D_sail_size.val =
+    Math.sqrt(inputs.m0_payload_mass.val / (hiddens.xi_sail_constant.val *
+      inputs.rho_sail_density.val * inputs.h_sail_thickness.val));
 }
 
-/*
- * CSV download functionality
+/**
+ * Download a CSV file 
  */
-
 function downloadCSV() {
   var filename = prompt('Enter filename for CSV', 'laser_propulsion_calculations.csv');
-  exportToCsv(filename, createCSV());
+  exportToCsv(filename);
 }
 
-function exportToCsv(filename, rows) {
+/**
+ * Download a CSV file to the user with the contents of the calculator
+ *
+ * @param {String} filename - Name of the file being downloaded
+ */
+function exportToCsv(filename) {
+
+  // Creates a row in the CSV string
   var processRow = function(row) {
     var finalVal = '';
     for (var j = 0; j < row.length; j++) {
@@ -959,11 +928,16 @@ function exportToCsv(filename, rows) {
     return finalVal + '\n';
   };
 
+  // Create JSON object containing calculator table
+  var rows = createCSV();
+
+  // Convert JSON object to string
   var csvFile = '';
   for (var i = 0; i < rows.length; i++) {
     csvFile += processRow(rows[i]);
   }
 
+  // Download the file to the user's computer
   var blob = new Blob([csvFile], {
     type: 'text/csv;charset=utf-8;',
   });
@@ -984,6 +958,9 @@ function exportToCsv(filename, rows) {
   }
 }
 
+/**
+ * Generate a JSON object, which can easily be converted to a CSV file
+ */
 function createCSV() {
   var lineArray = [
     ['Inputs', 'Value', 'Unit', 'Outputs', 'Value', 'Unit'],
@@ -1042,8 +1019,8 @@ function createCSV() {
   return lineArray;
 }
 
-/*
- * Convert unit in HTML format to text
+/**
+ * Convert a unit in HTML format to text
  */
 function htmlToText(unitHTML) {
   if (!isDefined(unitHTML)) {
