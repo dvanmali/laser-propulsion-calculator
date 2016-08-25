@@ -57,19 +57,19 @@
         }
 
     input {
-      background: none;
-      /* background-color: #94c27d; */
-      border: none;
-      border-bottom: 1px dotted #666;
-      color: #94c27d;
-      font-size: 1rem;
+      
     }
 
       input[type="number"] {
+        background: none;
+        border: none;
+        border-bottom: 1px dotted #666;
+        color: #94c27d;
+        font-size: 1rem;
         width: 100%;
       }
 
-      input:disabled {
+      input[type="number"]:disabled {
         color: #999;
       }
 
@@ -86,6 +86,7 @@
 
     nav > ul {
       list-style-type: none;
+      padding: 0;
     }
 
       nav li {
@@ -119,15 +120,16 @@
 <body>
   <header>
     <h1>UC Santa Barbara Laser Propulsion (Classical 1D)</h1>
-  </header>
-  <div id="main">
     <nav>
       <ul>
         <li>
-          <button id='download_csv'>Save as CSV</button>
+          <input type='button' id='download_csv' value='Save as CSV'/>
+          <input type='file' id='import_csv' value='Import CSV'/>
         </li>
       </ul>
     </nav>
+  </header>
+  <div id="main">
     <table id="inputs">
       <caption>
         <h2>

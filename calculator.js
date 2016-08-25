@@ -93,6 +93,7 @@ var inputs = {
     unit: {
       m: m,
     },
+    val: 1,
   },
   h_sail_thickness: {
     label: 'Sail Thickness',
@@ -791,6 +792,7 @@ function disableInput(input) {
   }
 
   document.getElementById('download_csv').addEventListener('click', downloadCSV, false);
+  document.getElementById('import_csv').addEventListener('change', importCSV, false);
 
   update();
 })();
@@ -852,10 +854,8 @@ function updateInput(e) {
 
 /** Event handler when inputs are changed
  * Re-calculate the outputs based on the new inputs
- *
- * @param {Event} e
  */
-function update(e) {
+function update() {
   // Update hidden variables
   for (var id in hiddens) {
     hiddens[id].update();
@@ -917,6 +917,7 @@ function exportToCsv(filename) {
     var finalVal = '';
     for (var j = 0; j < row.length; j++) {
       var innerValue = typeof row[j] === 'undefined' ? '' : row[j].toString();
+
       if (row[j] instanceof Date) {
         innerValue = row[j].toLocaleString();
       };
@@ -1039,4 +1040,56 @@ function htmlToText(unitHTML) {
   unitHTML = String(unitHTML).replace(/<\/sub>/g, '');
 
   return unitHTML;
+}
+
+/**
+ * Import a CSV into the calculator
+ *
+ * @param {Event} e - Event from a file upload button
+ */
+function importCSV(e) {
+  var files = e.target.files;
+  if (files.length !== 1) {
+    return;
+  }
+
+  var file = files[0];
+  if (file.type !== 'text/csv') {
+    return;
+  }
+
+  var reader = new FileReader();
+
+  // Wait for reader to load data
+  reader.onload = function() {
+    var rows = reader.result.split('\n');
+    var inputsArray = Object.getOwnPropertyNames(inputs);
+
+    // Iterate through each input
+    for (var i = 0; i < Math.max(inputsArray.length); i++) {
+      var input = inputs[inputsArray[i]];
+      var cells = rows[i + 1].split(',');
+
+      // Set the input's value
+      var event;
+      var type = input.type;
+      if (type === 'checkbox' || type === 'radio') {
+        input.element.checked = (cells[1] === 'true');
+        event = new CustomEvent('click', {
+          target: input.element
+        });
+      } else {
+        input.element.value = parseFloat(cells[1]);
+        event = new CustomEvent('input', {
+          target: input.element
+        });
+      }
+
+      // Trigger an input event to recompute outputs
+      input.element.dispatchEvent(event);
+    }
+  };
+
+  // Read body text of file
+  reader.readAsText(file);
 }
