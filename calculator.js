@@ -62,7 +62,7 @@ var inputs = {
   auto_sail: {
     label: 'Use Optimal Sail',
     type: 'checkbox',
-    val: false,
+    val: true,
   },
   use_square_sail: {
     label: 'Use Square Sail',
